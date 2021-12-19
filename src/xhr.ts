@@ -1,3 +1,4 @@
+import { createError } from './helpers/error'
 import { parseHeaders } from './helpers/headers'
 import { AxiosResponse, AxiosRquestConfig, AxiosPromise } from './types/index'
 
@@ -29,10 +30,10 @@ const xhr = (config: AxiosRquestConfig): AxiosPromise => {
 
     // 错误处理
     request.onerror = function errorHandler() {
-      reject(new Error('request is failed'))
+      reject(createError('request is failed', config, null, request))
     }
     request.ontimeout = function timeoutHandler() {
-      reject(new Error(`Timeout of ${timeout} ms exceeded`))
+      reject(createError(`Timeout of ${timeout} ms exceeded`, config, 'timeout', request))
     }
     request.onreadystatechange = function handlLoad() {
       if (request.readyState !== 4) return
@@ -54,7 +55,7 @@ const xhr = (config: AxiosRquestConfig): AxiosPromise => {
       if (status >= 200 && status < 300) {
         resolve(res)
       } else {
-        reject(new Error(`request is failed with code ${res.statusText}`))
+        reject(createError(`request is failed with code ${res.statusText}`, config, null, res))
       }
     }
   })
