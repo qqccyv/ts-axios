@@ -6,7 +6,7 @@ import xhr from './xhr'
 
 function axios(config: AxiosRquestConfig): AxiosPromise {
   processConfig(config)
-  // toto
+  // todo
   return xhr(config).then(res => {
     return transformResponseData(res)
   })

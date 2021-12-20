@@ -30,9 +30,12 @@ const xhr = (config: AxiosRquestConfig): AxiosPromise => {
 
     // 错误处理
     request.onerror = function errorHandler() {
+      console.log('onerror')
+
       reject(createError('request is failed', config, null, request))
     }
     request.ontimeout = function timeoutHandler() {
+      console.log(11111)
       reject(createError(`Timeout of ${timeout} ms exceeded`, config, 'timeout', request))
     }
     request.onreadystatechange = function handlLoad() {
@@ -47,7 +50,7 @@ const xhr = (config: AxiosRquestConfig): AxiosPromise => {
         config,
         request
       }
-      resolve(response)
+      responseHandler(response)
     }
 
     function responseHandler(res: AxiosResponse) {
