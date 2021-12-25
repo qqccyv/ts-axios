@@ -1,14 +1,14 @@
-import { createError } from './helpers/error'
-import { parseHeaders } from './helpers/headers'
-import { AxiosResponse, AxiosRquestConfig, AxiosPromise } from './types/index'
+import { createError } from '../helpers/error'
+import { parseHeaders } from '../helpers/headers'
+import { AxiosResponse, AxiosRequestConfig, AxiosPromise } from '../types/index'
 
-const xhr = (config: AxiosRquestConfig): AxiosPromise => {
+const xhr = (config: AxiosRequestConfig): AxiosPromise => {
   return new Promise((resolve, reject) => {
     const { url, method = 'get', data = null, headers, responseType, timeout } = config
 
     const request = new XMLHttpRequest()
 
-    request.open(method.toUpperCase(), url, true)
+    request.open(method.toUpperCase(), url!, true)
 
     if (responseType) {
       request.responseType = responseType
