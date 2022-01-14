@@ -1,8 +1,20 @@
-import { Method } from './../types/index'
-import { AxiosPromise, AxiosRequestConfig } from '..'
+import { AxiosPromise, AxiosRequestConfig, AxiosResponse, Method, Interceptors, ResolveFn, RejectedFn } from '..'
 import dispatchRequest from './dispatchRequest'
+import InterceptorManager from './interceptorManager'
+
+interface PromiseChain<T> {
+  resolved: ResolveFn<T> | ((config: AxiosRequestConfig) => AxiosPromise)
+  rejected?: RejectedFn
+}
 // 将axios封装为 可以直接调用和含有某些方法的混合对象
 export default class Axios {
+  interceptors: Interceptors
+  constructor() {
+    this.interceptors = {
+      request: new InterceptorManager<AxiosRequestConfig>(),
+      response: new InterceptorManager<AxiosResponse>()
+    }
+  }
   request(url: any, config?: any): AxiosPromise {
     if (typeof url === 'string') {
       if (!config) {
@@ -12,7 +24,30 @@ export default class Axios {
     } else {
       config = url
     }
-    return dispatchRequest(config)
+
+    // 设置拦截器链
+    const chain: PromiseChain<any>[] = [
+      {
+        resolved: dispatchRequest,
+        rejected: undefined
+      }
+    ]
+
+    // 添加拦截器 
+    this.interceptors.request.forEach(interceptor => {
+      chain.unshift(interceptor)
+    })
+    this.interceptors.response.forEach(interceptor => {
+      chain.push(interceptor)
+    })
+    // 通过异步promise实现拦截器的链式调用
+    let promise = Promise.resolve(config)
+    while (chain.length) {
+      const { resolved, rejected } = chain.shift()!
+      promise = promise.then(resolved, rejected)
+
+    }
+    return promise
   }
 
   get(url: string, config?: AxiosRequestConfig): AxiosPromise {

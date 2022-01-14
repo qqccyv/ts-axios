@@ -1,4 +1,5 @@
 import axios from '../../src/index'
+console.log(axios);
 
 axios.interceptors.request.use(config => {
   config.headers.test += '1'
