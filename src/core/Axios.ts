@@ -1,6 +1,15 @@
-import { AxiosPromise, AxiosRequestConfig, AxiosResponse, Method, Interceptors, ResolveFn, RejectedFn } from '..'
+import {
+  AxiosPromise,
+  AxiosRequestConfig,
+  AxiosResponse,
+  Method,
+  Interceptors,
+  ResolveFn,
+  RejectedFn
+} from '..'
 import dispatchRequest from './dispatchRequest'
 import InterceptorManager from './interceptorManager'
+import mergeConfig from './mergeConfig'
 
 interface PromiseChain<T> {
   resolved: ResolveFn<T> | ((config: AxiosRequestConfig) => AxiosPromise)
@@ -8,8 +17,10 @@ interface PromiseChain<T> {
 }
 // 将axios封装为 可以直接调用和含有某些方法的混合对象
 export default class Axios {
+  defaults: AxiosRequestConfig
   interceptors: Interceptors
-  constructor() {
+  constructor(config: AxiosRequestConfig) {
+    this.defaults = config
     this.interceptors = {
       request: new InterceptorManager<AxiosRequestConfig>(),
       response: new InterceptorManager<AxiosResponse>()
@@ -24,7 +35,8 @@ export default class Axios {
     } else {
       config = url
     }
-
+    // 合并默认配置
+    config = mergeConfig(this.defaults, config)
     // 设置拦截器链
     const chain: PromiseChain<any>[] = [
       {
@@ -33,7 +45,7 @@ export default class Axios {
       }
     ]
 
-    // 添加拦截器 
+    // 添加拦截器
     this.interceptors.request.forEach(interceptor => {
       chain.unshift(interceptor)
     })
@@ -45,7 +57,6 @@ export default class Axios {
     while (chain.length) {
       const { resolved, rejected } = chain.shift()!
       promise = promise.then(resolved, rejected)
-
     }
     return promise
   }
